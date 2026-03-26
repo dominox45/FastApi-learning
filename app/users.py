@@ -61,7 +61,7 @@ async def users(name: str = None, age: int = None):
         return {"error": "User not found"}
     return results
 
-#implementacion de post para agregar un nuevo usuario
+#implementacion de post para agregar un nuevo usuario (corregir validacion))
 @app.post("/users")
 async def create_user(userData: UserCreate): 
     new_id = max([u.id for u in users_list]) + 1 if users_list else 1
@@ -71,8 +71,28 @@ async def create_user(userData: UserCreate):
     newUser = User(id=new_id, name=userData.name, surname=userData.surname, url=userData.url, age=userData.age)
     users_list.append(newUser)
     return newUser
- 
 
+#implemetacion de put para actualizar un usuario existente (version basica sin validacion)
+@app.put("/users")  
+async def update_user(user: User):
+    flag = False
+    for i, usuari in enumerate(users_list):
+        if usuari.id == user.id:
+            users_list[i] = user
+            flag = True
+            break
+    if flag:
+        return user
+    return {"error": "User not found"}
+
+#implementacion de delete para eliminar un usuario
+
+
+
+
+
+
+#(posterior eliminar validaciones innecesarias)
 def validar_name(name: str):
     if not name.isalpha() or (len(name) < 2 or len(name) > 50):
         return False
