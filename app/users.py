@@ -1,16 +1,15 @@
 from fastapi import FastAPI 
-from pydantic import BaseModel 
+from pydantic import BaseModel, Field, HttpUrl
 
 app = FastAPI()
  #inicio del server uvicorn app.users:app --reload 
 
  #entidad user 
 class User(BaseModel): 
-    id: int
-    name: str
-    surname: str
-    url: str
-    age: int
+    name: str = Field(min_length=2, max_length=50)
+    surname: str = Field(min_length=2, max_length=50)
+    url: HttpUrl
+    age: int = Field(ge=0, le=120)
 
 class UserCreate(BaseModel):
     name: str
