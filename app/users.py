@@ -73,7 +73,7 @@ async def create_user(userData: UserCreate):
     return newUser
 
 #implemetacion de put para actualizar un usuario existente (version basica sin validacion)
-@app.put("/users")  
+@app.put("/users/")  
 async def update_user(user: User):
     flag = False
     for i, usuari in enumerate(users_list):
@@ -86,10 +86,14 @@ async def update_user(user: User):
     return {"error": "User not found"}
 
 #implementacion de delete para eliminar un usuario
-
-
-
-
+@app.delete("/users/{id}")
+async def delete_user(id: int):
+    for i, user in enumerate(users_list):
+        if user.id == id:
+            auxuser = users_list[i]
+            del users_list[i]
+            return {"message": f"User: {auxuser.name} has been deleted"}
+    return {"error": "User not found"}
 
 
 #(posterior eliminar validaciones innecesarias)
