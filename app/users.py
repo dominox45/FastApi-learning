@@ -1,26 +1,30 @@
-from fastapi import FastAPI 
-from pydantic import BaseModel, Field, HttpUrl
+from fastapi import FastAPI, HTTPException
+
+from pydantic import BaseModel, Field, HttpUrl, EmailStr
 
 app = FastAPI()
  #inicio del server uvicorn app.users:app --reload 
 
  #entidad user 
 class User(BaseModel): 
+    id: int
     name: str = Field(min_length=2, max_length=50)
     surname: str = Field(min_length=2, max_length=50)
     url: HttpUrl
     age: int = Field(ge=0, le=120)
+    email: EmailStr
 
 class UserCreate(BaseModel):
-    name: str
-    surname: str
-    url: str
-    age: int
+    name: str = Field(min_length=2, max_length=50)
+    surname: str = Field(min_length=2, max_length=50)
+    url: HttpUrl
+    age: int = Field(ge=0, le=120)
+    email: EmailStr
 
 
-users_list = [User(id=1, name="facu", surname="garcia", url="https://example1.com", age=30),
-              User(id=2, name="asa", surname="perez", url="https://example2.com", age=30),
-              User(id=3, name="denji", surname="lopez", url="https://example3.com", age=28)]
+users_list = [User(id=1, name="facu", surname="garcia", url="https://example1.com", age=30, email="facu@example.com"),
+              User(id=2, name="asa", surname="perez", url="https://example2.com", age=30, email="asa@example.com"),
+              User(id=3, name="denji", surname="lopez", url="https://example3.com", age=28, email="denji@example.com")]
 
 #ejemplo de carga a mano de json|
 
@@ -50,7 +54,7 @@ async def user(id: int):
 #implementacion de get con variables por query
 @app.get("/users")
 async def users(name: str = None, age: int = None):
-    results = users_list
+    results = users_list 
     if name is not None:
          results = [u for u in results if u.name.lower() == name.lower()]
     if age is not None:
@@ -61,12 +65,12 @@ async def users(name: str = None, age: int = None):
     return results
 
 #implementacion de post para agregar un nuevo usuario (corregir validacion))
-@app.post("/users")
-async def create_user(userData: UserCreate): 
+@app.post("/users", status_code=201) #201 resultado de creacion exitosa
+async def create_user(userData: UserCreate):  
+    if any(u.email == userData.email for u in users_list):
+        raise HTTPException(status_code=409, detail="User with the same email already exists") #409 conflicto por email repetido
+    
     new_id = max([u.id for u in users_list]) + 1 if users_list else 1
-    Error = validar(userData)
-    if Error is not True:
-        return Error
     newUser = User(id=new_id, name=userData.name, surname=userData.surname, url=userData.url, age=userData.age)
     users_list.append(newUser)
     return newUser
@@ -93,30 +97,3 @@ async def delete_user(id: int):
             del users_list[i]
             return {"message": f"User: {auxuser.name} has been deleted"}
     return {"error": "User not found"}
-
-
-#(posterior eliminar validaciones innecesarias)
-def validar_name(name: str):
-    if not name.isalpha() or (len(name) < 2 or len(name) > 50):
-        return False
-        
-    return True
-
-def validar_age(age: int):
-    if age < 0 or age > 120:
-        return False 
-    return True
-
-def validar_url(url: str):
-    if not url.startswith("http://") and not url.startswith("https://"):
-        return False
-    return True
-
-def validar(user: UserCreate):
-    if not validar_name(user.name):
-        return {"error": "Name must be between 2 and 50 characters"}
-    if not validar_age(user.age):
-        return {"error": "Age must be between 0 and 120"}
-    if not validar_url(user.url):
-        return {"error": "Invalid URL"}
-    return True
