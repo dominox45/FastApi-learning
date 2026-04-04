@@ -44,7 +44,7 @@ users_list = [User(id=1, name="facu", surname="garcia", url="https://example1.co
 
 
 #implementacion de get con variables por path
-@app.get("/users/{id}", status_code=200) #La solicitud tuvo éxito, El recurso ha sido recuperado y transmitido en el cuerpo del mensaje.
+@app.get("/users/{id}",response_model=User, status_code=200) #La solicitud tuvo éxito, El recurso ha sido recuperado y transmitido en el cuerpo del mensaje.
 async def user(id: int):
    user = next((u for u in users_list if u.id ==id),None)
    if user:
@@ -52,7 +52,7 @@ async def user(id: int):
    raise HTTPException(status_code=404, detail="User not found")
 
 #implementacion de get con variables por query
-@app.get("/users", status_code=200) #La solicitud tuvo éxito, El recurso ha sido recuperado y transmitido en el cuerpo del mensaje.
+@app.get("/users", response_model=list[User], status_code=200) #La solicitud tuvo éxito, El recurso ha sido recuperado y transmitido en el cuerpo del mensaje.
 async def users(name: str = None, age: int = None):
     results = users_list 
     if name is not None:
@@ -66,7 +66,7 @@ async def users(name: str = None, age: int = None):
 
 #implementacion de post para agregar un nuevo usuario 
 
-@app.post("/users", status_code=201) #201 resultado de creacion exitosa
+@app.post("/users", response_model=User, status_code=201) #201 resultado de creacion exitosa
 async def create_user(userData: UserCreate):  
     if any(u.email == userData.email for u in users_list):
         raise HTTPException(status_code=409, detail="User with the same email already exists") #409 conflicto por email repetido
@@ -78,7 +78,7 @@ async def create_user(userData: UserCreate):
 
 #implemetacion de put para actualizar un usuario existente (version basica sin validacion)
 
-@app.put("/users", status_code=200) #200 resultado exitoso, el recurso ha sido actualizado
+@app.put("/users",response_model=User, status_code=200) #200 resultado exitoso, el recurso ha sido actualizado
 async def update_user(user: User):
     for i, useraux in enumerate(users_list):
         if useraux.id == user.id:
@@ -89,7 +89,7 @@ async def update_user(user: User):
     raise HTTPException(status_code=404, detail="User not found")
 
 #implementacion de delete para eliminar un usuario
-@app.delete("/users/{id}", status_code=200) #200 resultado exitoso, el recurso ha sido eliminado
+@app.delete("/users/{id}",response_model=User, status_code=200) #200 resultado exitoso, el recurso ha sido eliminado
 async def delete_user(id: int):
     for i, user in enumerate(users_list):
         if user.id == id:
